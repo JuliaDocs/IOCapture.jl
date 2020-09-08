@@ -1,6 +1,12 @@
 using IOCapture
 using Test
 
+# Callable object for testing
+struct Foo
+    x
+end
+(foo::Foo)() = println(foo.x)
+
 @testset "IOCapture.jl" begin
     # Capturing standard output
     c = iocapture() do
@@ -67,10 +73,6 @@ using Test
     @test c.value.msg == "error"
 
     # Callable objects
-    struct Foo
-        x :: Any
-    end
-    (foo::Foo)() = println(foo.x)
     c = iocapture(Foo("callable test"))
     @test !c.error
     @test c.output == "callable test\n"
