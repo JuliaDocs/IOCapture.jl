@@ -54,28 +54,6 @@ end
     @test c.backtrace isa Vector
     @test isempty(c.backtrace)
 
-    # Exceptions
-    c = iocapture() do
-        println("test")
-        error("error")
-        return 42
-    end
-    @test c.error
-    @test c.output == "test\n"
-    @test c.value isa ErrorException
-    @test c.value.msg == "error"
-
-    # Exceptions
-    c = iocapture() do
-        error("error")
-        println("test")
-        return 42
-    end
-    @test c.error
-    @test c.output == ""
-    @test c.value isa ErrorException
-    @test c.value.msg == "error"
-
     # Callable objects
     c = iocapture(Foo("callable test"))
     @test !c.error
@@ -108,5 +86,50 @@ end
         @test c.output == "println\n[ Info: @info\n"
     else # --depwarn=yes
         @test startswith(c.output, "println\n[ Info: @info\n┌ Warning: depwarn\n")
+    end
+
+    # Exceptions -- normally rethrown
+    @test_throws ErrorException iocapture() do
+        println("test")
+        error("error")
+        return 42
+    end
+
+    # .. but can be controlled with throwerrors
+    c = iocapture(throwerrors=false) do
+        println("test")
+        error("error")
+        return 42
+    end
+    @test c.error
+    @test c.output == "test\n"
+    @test c.value isa ErrorException
+    @test c.value.msg == "error"
+
+    c = iocapture(throwerrors=false) do
+        error("error")
+        println("test")
+        return 42
+    end
+    @test c.error
+    @test c.output == ""
+    @test c.value isa ErrorException
+    @test c.value.msg == "error"
+
+    # .. including interrupts
+    c = iocapture(throwerrors=false) do
+        println("test")
+        throw(InterruptException())
+        return 42
+    end
+    @test c.error
+    @test c.output == "test\n"
+    @test c.value isa InterruptException
+
+    # .. unless it's throwerrors = :interrupt
+    @test_throws InterruptException iocapture(throwerrors=:interrupt) do
+        println("test")
+        throw(InterruptException())
+        return 42
     end
 end
