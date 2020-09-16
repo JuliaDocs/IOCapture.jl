@@ -1,6 +1,6 @@
 # IOCapture
 
-![Run tests](https://github.com/JuliaDocs/IOCapture.jl/workflows/Run%20tests/badge.svg)
+[![Run tests](https://github.com/JuliaDocs/IOCapture.jl/workflows/CI/badge.svg)](https://github.com/JuliaDocs/IOCapture.jl/actions)
 [![codecov](https://codecov.io/gh/JuliaDocs/IOCapture.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaDocs/IOCapture.jl)
 
 Exports the `iocapture(f)` function which evaluates the function `f`, captures the standard
