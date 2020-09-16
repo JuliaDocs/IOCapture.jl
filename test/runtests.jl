@@ -132,4 +132,8 @@ end
         throw(InterruptException())
         return 42
     end
+
+    # Invalid throwerrors values
+    @test_throws DomainError iocapture(()->nothing, throwerrors=:foo)
+    @test_throws TypeError iocapture(()->nothing, throwerrors=42)
 end
