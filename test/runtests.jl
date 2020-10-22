@@ -5,6 +5,10 @@ using Test
 # Note: this can not be inside the testset
 (VERSION < v"1.2.0-DEV.272") && (hasfield(::Type{T}, name::Symbol) where T = Base.fieldindex(T, name, false) > 0)
 
+hascolor(io) = VERSION >= v"1.6.0-DEV.481" && get(io, :color, false)
+has_escapecodes(s) = occursin(r"\e\[[^m]*m", s)
+strip_escapecodes(s) = replace(s, r"\e\[[^m]*m" => "")
+
 # Callable object for testing
 struct Foo
     x
@@ -61,11 +65,23 @@ end
     @test c.value === nothing
 
     # Colors get discarded
-    c = iocapture() do
+    c = iocapture(color=false) do
         printstyled("foo", color=:red)
     end
     @test !c.error
     @test c.output == "foo"
+    @test c.value === nothing
+
+    # Colors are preserved if it's supported
+    c = iocapture() do
+        printstyled("foo", color=:red)
+    end
+    @test !c.error
+    if hascolor(stdout)
+        @test c.output == "\e[31mfoo\e[39m"
+    else
+        @test c.output == "foo"
+    end
     @test c.value === nothing
 
     # This test checks that deprecation warnings are captured correctly
@@ -83,9 +99,12 @@ end
     @test isdefined(Base, :JLOptions)
     @test hasfield(Base.JLOptions, :depwarn)
     if Base.JLOptions().depwarn == 0 # --depwarn=no, default on Julia >= 1.5
-        @test c.output == "println\n[ Info: @info\n"
+        @test has_escapecodes(c.output) === hascolor(stderr)
+        @test strip_escapecodes(c.output) == "println\n[ Info: @info\n"
     else # --depwarn=yes
-        @test startswith(c.output, "println\n[ Info: @info\n┌ Warning: depwarn\n")
+        @test has_escapecodes(c.output) === hascolor(stderr)
+        output_nocol = strip_escapecodes(c.output)
+        @test startswith(output_nocol, "println\n[ Info: @info\n┌ Warning: depwarn\n")
     end
 
     # Exceptions -- normally rethrown

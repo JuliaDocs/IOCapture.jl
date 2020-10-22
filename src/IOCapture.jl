@@ -4,7 +4,7 @@ using Logging
 export iocapture
 
 """
-    iocapture(f; throwerrors=true)
+    iocapture(f; throwerrors=true, color=true)
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs without printing them
 in the terminal. Returns an object with the following fields:
@@ -20,6 +20,10 @@ The behaviour can be customized with the following keyword arguments:
   `f`. If set to `false`, exceptions are also captured and the exception objects returned
   via the `.value` field (with also `.error` and `.backtrace` set accordingly). If set to
   `:interrupt`, only `InterruptException`s are rethrown.
+
+* `color`: if set to `true` (default), `iocapture` inherits the `:color` property of
+  `stdout` and `stderr`, which specifies whether ANSI color/escape codes are expected. This
+  argument is only effective on Julia v1.6 and later.
 
 # Extended help
 
@@ -49,7 +53,7 @@ It is also possible to set `throwerrors = :interrupt`, which will make `iocaptur
 only `InterruptException`s. This is useful when you want to capture all the exceptions, but
 allow the user to interrupt the running code with `Ctrl+C`.
 """
-function iocapture(f; throwerrors::Union{Bool,Symbol}=true)
+function iocapture(f; throwerrors::Union{Bool,Symbol}=true, color::Bool=true)
     # Currently, :interrupt is the only valid Symbol value for throwerrors
     if isa(throwerrors, Symbol) && throwerrors !== :interrupt
         throw(DomainError(throwerrors, "Invalid value passed for throwerrors"))
@@ -62,10 +66,17 @@ function iocapture(f; throwerrors::Union{Bool,Symbol}=true)
     # Redirect both the `stdout` and `stderr` streams to a single `Pipe` object.
     pipe = Pipe()
     Base.link_pipe!(pipe; reader_supports_async = true, writer_supports_async = true)
-    redirect_stdout(pipe.in)
-    redirect_stderr(pipe.in)
+    if VERSION >= v"1.6.0-DEV.481" # https://github.com/JuliaLang/julia/pull/36688
+        pe_stdout = IOContext(pipe.in, :color => get(stdout, :color, false) & color)
+        pe_stderr = IOContext(pipe.in, :color => get(stdout, :color, false) & color)
+    else
+        pe_stdout = pipe.in
+        pe_stderr = pipe.in
+    end
+    redirect_stdout(pe_stdout)
+    redirect_stderr(pe_stderr)
     # Also redirect logging stream to the same pipe
-    logger = ConsoleLogger(pipe.in)
+    logger = ConsoleLogger(pe_stderr)
 
     # Bytes written to the `pipe` are captured in `output` and converted to a `String`.
     output = UInt8[]
