@@ -60,13 +60,12 @@ redirect streams which get cleaned up at the end of the `iocapture` call.
 
 ### ANSI color/escape code
 
-On Julia v1.6 and later, the captured output of `iocapture` inherits the `:color` property
-of the `stdout` or `stderr` by default. The colorization can be disabled by setting the
-`color` keyword argument of `iocapture` to `false`.
+On Julia v1.6 and later, if the `color` keyword argument is set to `true`, the captured
+output of `iocapture` inherits the `:color` property of the `stdout` or `stderr`.
 
 On the other hand, on Julia v1.5 or earlier, even if the `color` keyword argument is set to
 `true`, no coloring will be applied. However, this limitation might be removed in the
-future, so you should specify `color=false` if you want to avoid coloring.
+future.
 
 
 ## Similar packages

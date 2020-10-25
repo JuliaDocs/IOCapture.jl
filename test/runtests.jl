@@ -65,7 +65,7 @@ end
     @test c.value === nothing
 
     # Colors get discarded
-    c = iocapture(color=false) do
+    c = iocapture() do
         printstyled("foo", color=:red)
     end
     @test !c.error
@@ -73,7 +73,7 @@ end
     @test c.value === nothing
 
     # Colors are preserved if it's supported
-    c = iocapture() do
+    c = iocapture(color=true) do
         printstyled("foo", color=:red)
     end
     @test !c.error
@@ -85,7 +85,7 @@ end
     @test c.value === nothing
 
     # This test checks that deprecation warnings are captured correctly
-    c = iocapture() do
+    c = iocapture(color=true) do
         println("println")
         @info "@info"
         f() = (Base.depwarn("depwarn", :f); nothing)
