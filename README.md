@@ -1,6 +1,9 @@
 # IOCapture
 
+[![version](https://juliahub.com/docs/IOCapture/version.svg)](https://juliahub.com/ui/Packages/IOCapture/shLGd)
+[![](https://img.shields.io/badge/docs-JuliaHub-blue.svg)](https://juliahub.com/docs/IOCapture/shLGd)
 [![Run tests](https://github.com/JuliaDocs/IOCapture.jl/workflows/CI/badge.svg)](https://github.com/JuliaDocs/IOCapture.jl/actions)
+[![pkgeval](https://juliahub.com/docs/IOCapture/pkgeval.svg)](https://juliahub.com/ui/Packages/IOCapture/shLGd)
 [![codecov](https://codecov.io/gh/JuliaDocs/IOCapture.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaDocs/IOCapture.jl)
 
 Exports the `iocapture(f)` function which evaluates the function `f`, captures the standard
