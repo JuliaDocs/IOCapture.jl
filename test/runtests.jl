@@ -152,7 +152,36 @@ end
         return 42
     end
 
+    # .. or setting throwerrors = InterruptException
+    @test_throws InterruptException iocapture(throwerrors=InterruptException) do
+        println("test")
+        throw(InterruptException())
+        return 42
+    end
+
+    # .. or a union of exception types
+    @test_throws DivideError iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        div(1, 0)
+        return 42
+    end
+    @test_throws InterruptException iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        throw(InterruptException())
+        return 42
+    end
+
+    # don't throw on errors that don't match throwerrors
+    c = iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        three = "1" + "2"
+        return 42
+    end
+    @test c.error
+    @test c.output == "test\n"
+    @test c.value isa MethodError
+
     # Invalid throwerrors values
     @test_throws DomainError iocapture(()->nothing, throwerrors=:foo)
-    @test_throws TypeError iocapture(()->nothing, throwerrors=42)
+    @test_throws DomainError iocapture(()->nothing, throwerrors=42)
 end

@@ -4,7 +4,7 @@ using Logging
 export iocapture
 
 """
-    iocapture(f; throwerrors=true, color=false)
+    iocapture(f; throwerrors=Any, color=false)
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs without printing them
 in the terminal. Returns an object with the following fields:
@@ -16,10 +16,19 @@ in the terminal. Returns an object with the following fields:
 
 The behaviour can be customized with the following keyword arguments:
 
-* `throwerrors`: if set to `true` (default), `iocapture` will rethrow any exceptions thrown by
-  `f`. If set to `false`, exceptions are also captured and the exception objects returned
-  via the `.value` field (with also `.error` and `.backtrace` set accordingly). If set to
-  `:interrupt`, only `InterruptException`s are rethrown.
+* `throwerrors`:
+
+  When set to `Any` (default), `iocapture` will rethrow any exceptions thrown
+  by evaluating `f`. Setting it to `true` has the same effect as `Any`.
+
+  To throw on a subset of possible exceptions pass the exception type instead,
+  such as `InterruptException`. If multiple exception types may need to be
+  thrown then pass a `Union{...}` of the types. Passing `:interrupt` has the
+  same effect as using `InterruptException`.
+
+  Setting it to `Union{}` will capture all thrown exceptions and return them
+  via the `.value` field, and will also set `.error` and `.backtrace`
+  accordingly. Setting it to `false` also has this effect.
 
 * `color`: if set to `true`, `iocapture` inherits the `:color` property of `stdout` and
   `stderr`, which specifies whether ANSI color/escape codes are expected. This argument is
@@ -45,19 +54,25 @@ This approach does have some limitations -- see the README for more information.
 
 **Exceptions.** Normally, if `f` throws an exception, `iocapture` simply re-throws it with
 `rethrow`. However, by setting `throwerrors` to `false`, it is also possible to capture
-errors, which then get returned as via the `.value` field. Additionally, `.error` is set to
+errors, which then get returned via the `.value` field. Additionally, `.error` is set to
 `true`, to indicate that the function did not run normally, and the `catch_backtrace` of the
 exception is returned via `.backtrace`.
 
-It is also possible to set `throwerrors = :interrupt`, which will make `iocapture` rethrow
-only `InterruptException`s. This is useful when you want to capture all the exceptions, but
-allow the user to interrupt the running code with `Ctrl+C`.
+As mentioned above, it is also possible to set `throwerrors` to
+`InterruptException` or `:interrupt`. This will make `iocapture` rethrow only
+`InterruptException`s. This is useful when you want to capture all the
+exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
 """
-function iocapture(f; throwerrors::Union{Bool,Symbol}=true, color::Bool=false)
-    # Currently, :interrupt is the only valid Symbol value for throwerrors
-    if isa(throwerrors, Symbol) && throwerrors !== :interrupt
-        throw(DomainError(throwerrors, "Invalid value passed for throwerrors"))
-    end
+function iocapture(f; throwerrors=Any, color::Bool=false)
+    # `throwerrors` is set to one of `true`, `false`, `:interrupt`, or a
+    # subtype of `ErrorException`, or a `Union` of error subtypes. Here we
+    # convert the first three choices to types instead, as:
+    #
+    #   - `true` -> `Any`,
+    #   - `false` -> `Union{}`,
+    #   - `:interrupt` -> `InterruptException`.
+    throwerrors = rewrite_error_argument(throwerrors)
+
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -87,12 +102,7 @@ function iocapture(f; throwerrors::Union{Bool,Symbol}=true, color::Bool=false)
         try
             f(), true, Vector{Ptr{Cvoid}}()
         catch err
-            if (throwerrors === true) || (throwerrors === :interrupt && isa(err, InterruptException))
-                # If throwerrors is set, we just rethrow all errors. Or, if it is set to
-                # :interrupt, we rethrow only InterruptExceptions, which is useful when
-                # capturing output, but still want to give the user the option to abort.
-                rethrow(err)
-            end
+            err isa throwerrors && rethrow(err)
             # If we're capturing the error, we return the error object as the value.
             err, false, catch_backtrace()
         finally
@@ -113,5 +123,10 @@ function iocapture(f; throwerrors::Union{Bool,Symbol}=true, color::Bool=false)
         backtrace = backtrace,
     )
 end
+
+rewrite_error_argument(T::Type) = T
+rewrite_error_argument(arg::Bool) = arg ? Any : Union{}
+rewrite_error_argument(arg) = arg === :interrupt ? InterruptException :
+    throw(DomainError(arg, "Invalid value passed for throwerrors"))
 
 end
