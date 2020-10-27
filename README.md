@@ -24,6 +24,8 @@ See the docstring for full documentation.
 
 ## Known limitations
 
+### Separately stored `stdout` or `stderr` objects
+
 The capturing does not work properly if `f` prints to the `stdout` object that has been
 stored in a separate variable or object, e.g.:
 
@@ -58,6 +60,13 @@ Stacktrace:
 
 This is because `stdout` and `stderr` within an `iocapture` actually refer to the temporary
 redirect streams which get cleaned up at the end of the `iocapture` call.
+
+### ANSI color/escape code
+
+On Julia 1.5 and earlier, setting `color` to `true` has no effect, because the [ability to set `IOContext` attributes on
+redirected streams was added in 1.6](https://github.com/JuliaLang/julia/pull/36688). I.e. on those older Julia versions
+the captured output will generally not contain ANSI color escape sequences.
+
 
 ## Similar packages
 
