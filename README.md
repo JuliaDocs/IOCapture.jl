@@ -61,7 +61,7 @@ Stacktrace:
 This is because `stdout` and `stderr` within an `iocapture` actually refer to the temporary
 redirect streams which get cleaned up at the end of the `iocapture` call.
 
-### ANSI color/escape code
+### ANSI color / escape sequences
 
 On Julia 1.5 and earlier, setting `color` to `true` has no effect, because the [ability to set `IOContext` attributes on
 redirected streams was added in 1.6](https://github.com/JuliaLang/julia/pull/36688). I.e. on those older Julia versions
