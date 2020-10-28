@@ -19,16 +19,13 @@ The behaviour can be customized with the following keyword arguments:
 * `throwerrors`:
 
   When set to `Any` (default), `iocapture` will rethrow any exceptions thrown
-  by evaluating `f`. Setting it to `true` has the same effect as `Any`.
+  by evaluating `f`.
 
-  To throw on a subset of possible exceptions pass the exception type instead,
-  such as `InterruptException`. If multiple exception types may need to be
-  thrown then pass a `Union{...}` of the types. Passing `:interrupt` has the
-  same effect as using `InterruptException`.
-
-  Setting it to `Union{}` will capture all thrown exceptions and return them
-  via the `.value` field, and will also set `.error` and `.backtrace`
-  accordingly. Setting it to `false` also has this effect.
+  To only throw on a subset of possible exceptions pass the exception type
+  instead, such as `InterruptException`. If multiple exception types may need
+  to be thrown then pass a `Union{...}` of the types. Setting it to `Union{}`
+  will capture all thrown exceptions. Captured exceptions will be returned via
+  the `.value` field, and will also set `.error` and `.backtrace` accordingly.
 
 * `color`: if set to `true`, `iocapture` inherits the `:color` property of `stdout` and
   `stderr`, which specifies whether ANSI color/escape codes are expected. This argument is
@@ -59,20 +56,11 @@ errors, which then get returned via the `.value` field. Additionally, `.error` i
 exception is returned via `.backtrace`.
 
 As mentioned above, it is also possible to set `throwerrors` to
-`InterruptException` or `:interrupt`. This will make `iocapture` rethrow only
+`InterruptException`. This will make `iocapture` rethrow only
 `InterruptException`s. This is useful when you want to capture all the
 exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
 """
-function iocapture(f; throwerrors=Any, color::Bool=false)
-    # `throwerrors` is set to one of `true`, `false`, `:interrupt`, or a
-    # subtype of `ErrorException`, or a `Union` of error subtypes. Here we
-    # convert the first three choices to types instead, as:
-    #
-    #   - `true` -> `Any`,
-    #   - `false` -> `Union{}`,
-    #   - `:interrupt` -> `InterruptException`.
-    throwerrors = rewrite_error_argument(throwerrors)
-
+function iocapture(f; throwerrors::Type=Any, color::Bool=false)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -123,10 +111,5 @@ function iocapture(f; throwerrors=Any, color::Bool=false)
         backtrace = backtrace,
     )
 end
-
-rewrite_error_argument(T::Type) = T
-rewrite_error_argument(arg::Bool) = arg ? Any : Union{}
-rewrite_error_argument(arg) = arg === :interrupt ? InterruptException :
-    throw(DomainError(arg, "Invalid value passed for throwerrors"))
 
 end
