@@ -115,7 +115,7 @@ end
     end
 
     # .. but can be controlled with throwerrors
-    c = iocapture(throwerrors=false) do
+    c = iocapture(throwerrors=Union{}) do
         println("test")
         error("error")
         return 42
@@ -125,7 +125,7 @@ end
     @test c.value isa ErrorException
     @test c.value.msg == "error"
 
-    c = iocapture(throwerrors=false) do
+    c = iocapture(throwerrors=Union{}) do
         error("error")
         println("test")
         return 42
@@ -136,7 +136,7 @@ end
     @test c.value.msg == "error"
 
     # .. including interrupts
-    c = iocapture(throwerrors=false) do
+    c = iocapture(throwerrors=Union{}) do
         println("test")
         throw(InterruptException())
         return 42
@@ -145,14 +145,38 @@ end
     @test c.output == "test\n"
     @test c.value isa InterruptException
 
-    # .. unless it's throwerrors = :interrupt
-    @test_throws InterruptException iocapture(throwerrors=:interrupt) do
+    # .. or setting throwerrors = InterruptException
+    @test_throws InterruptException iocapture(throwerrors=InterruptException) do
         println("test")
         throw(InterruptException())
         return 42
     end
 
+    # .. or a union of exception types
+    @test_throws DivideError iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        div(1, 0)
+        return 42
+    end
+    @test_throws InterruptException iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        throw(InterruptException())
+        return 42
+    end
+
+    # don't throw on errors that don't match throwerrors
+    c = iocapture(throwerrors=Union{DivideError,InterruptException}) do
+        println("test")
+        three = "1" + "2"
+        return 42
+    end
+    @test c.error
+    @test c.output == "test\n"
+    @test c.value isa MethodError
+
     # Invalid throwerrors values
-    @test_throws DomainError iocapture(()->nothing, throwerrors=:foo)
+    @test_throws TypeError iocapture(()->nothing, throwerrors=:foo)
     @test_throws TypeError iocapture(()->nothing, throwerrors=42)
+    @test_throws TypeError iocapture(()->nothing, throwerrors=true)
+    @test_throws TypeError iocapture(()->nothing, throwerrors=false)
 end
