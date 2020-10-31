@@ -4,7 +4,7 @@ using Logging
 export iocapture
 
 """
-    iocapture(f; throwerrors=Any, color=false)
+    iocapture(f; rethrow=Any, color=false)
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs without printing them
 in the terminal. Returns an object with the following fields:
@@ -16,7 +16,7 @@ in the terminal. Returns an object with the following fields:
 
 The behaviour can be customized with the following keyword arguments:
 
-* `throwerrors`:
+* `rethrow`:
 
   When set to `Any` (default), `iocapture` will rethrow any exceptions thrown
   by evaluating `f`.
@@ -50,17 +50,17 @@ julia> cap.output
 This approach does have some limitations -- see the README for more information.
 
 **Exceptions.** Normally, if `f` throws an exception, `iocapture` simply re-throws it with
-`rethrow`. However, by setting `throwerrors` to `false`, it is also possible to capture
+`rethrow`. However, by setting `rethrow` to `false`, it is also possible to capture
 errors, which then get returned via the `.value` field. Additionally, `.error` is set to
 `true`, to indicate that the function did not run normally, and the `catch_backtrace` of the
 exception is returned via `.backtrace`.
 
-As mentioned above, it is also possible to set `throwerrors` to
+As mentioned above, it is also possible to set `rethrow` to
 `InterruptException`. This will make `iocapture` rethrow only
 `InterruptException`s. This is useful when you want to capture all the
 exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
 """
-function iocapture(f; throwerrors::Type=Any, color::Bool=false)
+function iocapture(f; rethrow::Type=Any, color::Bool=false)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -90,7 +90,7 @@ function iocapture(f; throwerrors::Type=Any, color::Bool=false)
         try
             f(), true, Vector{Ptr{Cvoid}}()
         catch err
-            err isa throwerrors && rethrow(err)
+            err isa rethrow && Base.rethrow(err)
             # If we're capturing the error, we return the error object as the value.
             err, false, catch_backtrace()
         finally
