@@ -17,7 +17,7 @@ end
 
 @testset "IOCapture.jl" begin
     # Capturing standard output
-    c = iocapture() do
+    c = IOCapture.capture() do
         println("test")
     end
     @test !c.error
@@ -27,7 +27,7 @@ end
     @test isempty(c.backtrace)
 
     # Capturing standard error
-    c = iocapture() do
+    c = IOCapture.capture() do
         println(stderr, "test")
     end
     @test !c.error
@@ -37,7 +37,7 @@ end
     @test isempty(c.backtrace)
 
     # Return values
-    c = iocapture() do
+    c = IOCapture.capture() do
         println("test")
         return 42
     end
@@ -47,7 +47,7 @@ end
     @test c.backtrace isa Vector
     @test isempty(c.backtrace)
 
-    c = iocapture() do
+    c = IOCapture.capture() do
         println("test")
         println(stderr, "test")
         return rand(5,5)
@@ -59,13 +59,13 @@ end
     @test isempty(c.backtrace)
 
     # Callable objects
-    c = iocapture(Foo("callable test"))
+    c = IOCapture.capture(Foo("callable test"))
     @test !c.error
     @test c.output == "callable test\n"
     @test c.value === nothing
 
     # Colors get discarded
-    c = iocapture() do
+    c = IOCapture.capture() do
         printstyled("foo", color=:red)
     end
     @test !c.error
@@ -73,7 +73,7 @@ end
     @test c.value === nothing
 
     # Colors are preserved if it's supported
-    c = iocapture(color=true) do
+    c = IOCapture.capture(color=true) do
         printstyled("foo", color=:red)
     end
     @test !c.error
@@ -85,7 +85,7 @@ end
     @test c.value === nothing
 
     # This test checks that deprecation warnings are captured correctly
-    c = iocapture(color=true) do
+    c = IOCapture.capture(color=true) do
         println("println")
         @info "@info"
         f() = (Base.depwarn("depwarn", :f); nothing)
@@ -108,14 +108,14 @@ end
     end
 
     # Exceptions -- normally rethrown
-    @test_throws ErrorException iocapture() do
+    @test_throws ErrorException IOCapture.capture() do
         println("test")
         error("error")
         return 42
     end
 
     # .. but can be controlled with rethrow
-    c = iocapture(rethrow=Union{}) do
+    c = IOCapture.capture(rethrow=Union{}) do
         println("test")
         error("error")
         return 42
@@ -125,7 +125,7 @@ end
     @test c.value isa ErrorException
     @test c.value.msg == "error"
 
-    c = iocapture(rethrow=Union{}) do
+    c = IOCapture.capture(rethrow=Union{}) do
         error("error")
         println("test")
         return 42
@@ -136,7 +136,7 @@ end
     @test c.value.msg == "error"
 
     # .. including interrupts
-    c = iocapture(rethrow=Union{}) do
+    c = IOCapture.capture(rethrow=Union{}) do
         println("test")
         throw(InterruptException())
         return 42
@@ -146,26 +146,26 @@ end
     @test c.value isa InterruptException
 
     # .. or setting rethrow = InterruptException
-    @test_throws InterruptException iocapture(rethrow=InterruptException) do
+    @test_throws InterruptException IOCapture.capture(rethrow=InterruptException) do
         println("test")
         throw(InterruptException())
         return 42
     end
 
     # .. or a union of exception types
-    @test_throws DivideError iocapture(rethrow=Union{DivideError,InterruptException}) do
+    @test_throws DivideError IOCapture.capture(rethrow=Union{DivideError,InterruptException}) do
         println("test")
         div(1, 0)
         return 42
     end
-    @test_throws InterruptException iocapture(rethrow=Union{DivideError,InterruptException}) do
+    @test_throws InterruptException IOCapture.capture(rethrow=Union{DivideError,InterruptException}) do
         println("test")
         throw(InterruptException())
         return 42
     end
 
     # don't throw on errors that don't match rethrow
-    c = iocapture(rethrow=Union{DivideError,InterruptException}) do
+    c = IOCapture.capture(rethrow=Union{DivideError,InterruptException}) do
         println("test")
         three = "1" + "2"
         return 42
@@ -175,8 +175,8 @@ end
     @test c.value isa MethodError
 
     # Invalid rethrow values
-    @test_throws TypeError iocapture(()->nothing, rethrow=:foo)
-    @test_throws TypeError iocapture(()->nothing, rethrow=42)
-    @test_throws TypeError iocapture(()->nothing, rethrow=true)
-    @test_throws TypeError iocapture(()->nothing, rethrow=false)
+    @test_throws TypeError IOCapture.capture(()->nothing, rethrow=:foo)
+    @test_throws TypeError IOCapture.capture(()->nothing, rethrow=42)
+    @test_throws TypeError IOCapture.capture(()->nothing, rethrow=true)
+    @test_throws TypeError IOCapture.capture(()->nothing, rethrow=false)
 end
