@@ -1,10 +1,8 @@
 module IOCapture
 using Logging
 
-export iocapture
-
 """
-    iocapture(f; throwerrors=Any, color=false)
+    IOCapture.capture(f; rethrow=Any, color=false)
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs without printing them
 in the terminal. Returns an object with the following fields:
@@ -16,9 +14,9 @@ in the terminal. Returns an object with the following fields:
 
 The behaviour can be customized with the following keyword arguments:
 
-* `throwerrors`:
+* `rethrow`:
 
-  When set to `Any` (default), `iocapture` will rethrow any exceptions thrown
+  When set to `Any` (default), `capture` will rethrow any exceptions thrown
   by evaluating `f`.
 
   To only throw on a subset of possible exceptions pass the exception type
@@ -27,40 +25,50 @@ The behaviour can be customized with the following keyword arguments:
   will capture all thrown exceptions. Captured exceptions will be returned via
   the `.value` field, and will also set `.error` and `.backtrace` accordingly.
 
-* `color`: if set to `true`, `iocapture` inherits the `:color` property of `stdout` and
+* `color`: if set to `true`, `capture` inherits the `:color` property of `stdout` and
   `stderr`, which specifies whether ANSI color/escape codes are expected. This argument is
   only effective on Julia v1.6 and later.
 
 # Extended help
 
-`iocapture` works by temporarily redirecting the standard output and error streams
+`capture` works by temporarily redirecting the standard output and error streams
 (`stdout` and `stderr`) using `redirect_stdout` and `redirect_stderr` to a temporary
 buffer, evaluate the function `f` and then restores the streams. Both the captured text
 output and the returned object get captured and returned:
 
 ```jldoctest
-julia> cap = iocapture() do
+julia> c = IOCapture.capture() do
            println("test")
        end;
 
-julia> cap.output
+julia> c.output
 "test\\n"
 ```
 
 This approach does have some limitations -- see the README for more information.
 
-**Exceptions.** Normally, if `f` throws an exception, `iocapture` simply re-throws it with
-`rethrow`. However, by setting `throwerrors` to `false`, it is also possible to capture
+**Exceptions.** Normally, if `f` throws an exception, `capture` simply re-throws it with
+`rethrow`. However, by setting `rethrow` to `false`, it is also possible to capture
 errors, which then get returned via the `.value` field. Additionally, `.error` is set to
 `true`, to indicate that the function did not run normally, and the `catch_backtrace` of the
 exception is returned via `.backtrace`.
 
-As mentioned above, it is also possible to set `throwerrors` to
-`InterruptException`. This will make `iocapture` rethrow only
-`InterruptException`s. This is useful when you want to capture all the
-exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
+As mentioned above, it is also possible to set `rethrow` to `InterruptException`. This will
+make `capture` rethrow only `InterruptException`s. This is useful when you want to capture
+all the exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
+
+**Recommended pattern.** The recommended way to refer to `capture` is by fully qualifying
+the function name with `IOCapture.capture`. This is also why the package does not export
+the function. However, if a shorter name is desired, we recommend renaming the function
+when importing:
+
+```julia
+using IOcapture: capture as iocapture
+```
+
+This avoids the function name being too generic.
 """
-function iocapture(f; throwerrors::Type=Any, color::Bool=false)
+function capture(f; rethrow::Type=Any, color::Bool=false)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -90,7 +98,7 @@ function iocapture(f; throwerrors::Type=Any, color::Bool=false)
         try
             f(), true, Vector{Ptr{Cvoid}}()
         catch err
-            err isa throwerrors && rethrow(err)
+            err isa rethrow && Base.rethrow(err)
             # If we're capturing the error, we return the error object as the value.
             err, false, catch_backtrace()
         finally

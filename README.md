@@ -6,17 +6,17 @@
 [![pkgeval](https://juliahub.com/docs/IOCapture/pkgeval.svg)](https://juliahub.com/ui/Packages/IOCapture/shLGd)
 [![codecov](https://codecov.io/gh/JuliaDocs/IOCapture.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaDocs/IOCapture.jl)
 
-Exports the `iocapture(f)` function which evaluates the function `f`, captures the standard
-output and standard error, and returns it as a string, together with the return value. For
-example:
+Provides the `IOCapture.capture(f)` function which evaluates the function `f`, captures the
+standard output and standard error, and returns it as a string, together with the return
+value. For example:
 
 ```julia-repl
-julia> cap = iocapture() do
+julia> c = IOCapture.capture() do
            println("test")
            return 42
        end;
 
-julia> cap.value, cap.output
+julia> c.value, c.output
 (42, "test\n")
 ```
 
@@ -32,7 +32,7 @@ stored in a separate variable or object, e.g.:
 ```julia-repl
 julia> const original_stdout = stdout;
 
-julia> c = iocapture() do
+julia> c = IOCapture.capture() do
            println("output to stdout")
            println(original_stdout, "output to original stdout")
        end;
@@ -43,10 +43,10 @@ julia> c.output
 ```
 
 Relatedly, it is possible to run into errors if the `stdout` or `stderr` objects from
-within an `iocapture` are being used in a subsequent `iocapture` or outside of the capture:
+within a `capture` are being used in a subsequent `capture` or outside of the capture:
 
 ```julia-repl
-julia> c = iocapture() do
+julia> c = IOCapture.capture() do
            return stdout
        end;
 
@@ -58,14 +58,15 @@ Stacktrace:
  ...
 ```
 
-This is because `stdout` and `stderr` within an `iocapture` actually refer to the temporary
-redirect streams which get cleaned up at the end of the `iocapture` call.
+This is because `stdout` and `stderr` within an `capture` actually refer to the temporary
+redirect streams which get cleaned up at the end of the `capture` call.
 
 ### ANSI color / escape sequences
 
-On Julia 1.5 and earlier, setting `color` to `true` has no effect, because the [ability to set `IOContext` attributes on
-redirected streams was added in 1.6](https://github.com/JuliaLang/julia/pull/36688). I.e. on those older Julia versions
-the captured output will generally not contain ANSI color escape sequences.
+On Julia 1.5 and earlier, setting `color` to `true` has no effect, because the [ability to
+set `IOContext` attributes on redirected streams was added in
+1.6](https://github.com/JuliaLang/julia/pull/36688). I.e. on those older Julia versions the
+captured output will generally not contain ANSI color escape sequences.
 
 
 ## Similar packages
