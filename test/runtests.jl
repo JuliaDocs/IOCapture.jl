@@ -185,9 +185,9 @@ end
     @testset "Buffer filling" begin
         for nrows = 2 .^ (0:20)
             c = IOCapture.capture() do
-                for _ in 1:nrows; println("="^80); end
+                for _ in 1:nrows; print("="^80); end
             end
-            @test length(c.output) == 81 * nrows
+            @test length(c.output) == 80 * nrows
         end
     end
 end
