@@ -89,8 +89,14 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # Also redirect logging stream to the same pipe
     logger = ConsoleLogger(pe_stderr)
 
-    # Bytes written to the `pipe` are captured in `output` and converted to a `String`.
-    output = UInt8[]
+    # Bytes written to the `pipe` are captured in `output` and eventually converted to a
+    # `String`. We need to use an asynchronous task to continously tranfer bytes from the
+    # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
+    # user code.
+    output = IOBuffer()
+    buffer_redirect_task = @async while !eof(pipe)
+        write(output, readavailable(pipe))
+    end
 
     # Run the function `f`, capturing all output that it might have generated.
     # Success signals whether the function `f` did or did not throw an exception.
@@ -107,14 +113,13 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
             # Restore the original output streams.
             redirect_stdout(default_stdout)
             redirect_stderr(default_stderr)
-            # NOTE: `close` must always be called *after* `readavailable`.
-            append!(output, readavailable(pipe))
             close(pipe)
+            wait(buffer_redirect_task)
         end
     end
     (
         value = result,
-        output = chomp(String(output)),
+        output = chomp(String(take!(output))),
         error = !success,
         backtrace = backtrace,
     )

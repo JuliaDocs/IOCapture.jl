@@ -179,4 +179,15 @@ end
     @test_throws TypeError IOCapture.capture(()->nothing, rethrow=42)
     @test_throws TypeError IOCapture.capture(()->nothing, rethrow=true)
     @test_throws TypeError IOCapture.capture(()->nothing, rethrow=false)
+
+    # Make sure that IOCapture does not stall if we are printing _a lot_ of bytes into
+    # stdout. X-ref: https://github.com/fredrikekre/Literate.jl/issues/138
+    @testset "Buffer filling" begin
+        for nrows = 2 .^ (0:20)
+            c = IOCapture.capture() do
+                for _ in 1:nrows; println("="^80); end
+            end
+            @test length(c.output) == 81 * nrows
+        end
+    end
 end
