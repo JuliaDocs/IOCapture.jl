@@ -1,5 +1,9 @@
 # IOCapture.jl changelog
 
+## Version `0.2.1`
+
+* ![Bugfix][badge-bugfix] User code that writes a lot into `stdout` or `stderr` no longer stalls in `IOCapture.capture` due to a buffer filling up. ([fredrikekre/Literate.jl#138][literate-138], [#9][github-9])
+
 ## Version `0.2.0`
 
 * ![BREAKING][badge-breaking] ![Enhancement][badge-enhancement] The `iocapture` function has been renamed to `capture` and is no longer exported. The recommended way to refer to the function by fully qualifying the name (i.e. `IOCapture.capture`). ([#3][github-3], [#6][github-6])
@@ -9,7 +13,7 @@
 * ![BREAKING][badge-breaking] ![Enhancement][badge-enhancement] The `throwerrors` keyword argument to `capture` (previously `iocapture`) has been renamed to `rethrow` and accepts now exception types as arguments (instead of `:interrupt`/`true`/`false`). ([#2][github-2], [#4][github-4], [#6][github-6])
 
   **For upgrading:**
-  
+
   * Any uses of `throwerrors = ...` should be replaced by `rethrow = ...`.
   * `throwerrors = :interrupt` (or `rethrow = :interrupt`) should be replaced by `rethrow = InterrupException`.
   * `throwerrors = true` (or `rethrow = true`) should be replaced by `rethrow = Any`.
@@ -29,6 +33,9 @@ Initial release exporting the `iocapture` function.
 [github-3]: https://github.com/JuliaDocs/IOCapture.jl/issues/3
 [github-4]: https://github.com/JuliaDocs/IOCapture.jl/issues/4
 [github-6]: https://github.com/JuliaDocs/IOCapture.jl/pull/6
+[github-9]: https://github.com/JuliaDocs/IOCapture.jl/pull/9
+
+[literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
 
 
 [badge-breaking]: https://img.shields.io/badge/BREAKING-red.svg
