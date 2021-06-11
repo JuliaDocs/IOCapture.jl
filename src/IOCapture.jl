@@ -94,9 +94,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
-    buffer_redirect_task = @async while !eof(pipe)
-        write(output, readavailable(pipe))
-    end
+    buffer_redirect_task = @async write(output, pipe)
 
     # Run the function `f`, capturing all output that it might have generated.
     # Success signals whether the function `f` did or did not throw an exception.
@@ -108,18 +106,17 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
             # If we're capturing the error, we return the error object as the value.
             err, false, catch_backtrace()
         finally
-            # Force at least a single write to `pipe`, otherwise `readavailable` blocks.
-            println()
             # Restore the original output streams.
             redirect_stdout(default_stdout)
             redirect_stderr(default_stderr)
-            close(pipe)
+            close(pe_stdout)
+            close(pe_stderr)
             wait(buffer_redirect_task)
         end
     end
     (
         value = result,
-        output = chomp(String(take!(output))),
+        output = String(take!(output)),
         error = !success,
         backtrace = backtrace,
     )
