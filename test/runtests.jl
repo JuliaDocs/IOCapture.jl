@@ -1,5 +1,5 @@
 using IOCapture
-using Test
+using Test, Random
 
 # hasfield was added in Julia 1.2. This definition borrowed from Compat.jl (MIT)
 # Note: this can not be inside the testset
@@ -190,4 +190,11 @@ end
             @test length(c.output) == 80 * nrows
         end
     end
+
+    # Make sure the global rng isn't affected (JuliaLang/julia#41184).
+    Random.seed!(1)
+    r = rand()
+    Random.seed!(1)
+    c = IOCapture.capture(() -> rand())
+    @test r == c.value
 end

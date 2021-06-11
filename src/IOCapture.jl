@@ -1,5 +1,6 @@
 module IOCapture
 using Logging
+import Random
 
 """
     IOCapture.capture(f; rethrow=Any, color=false)
@@ -89,12 +90,26 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # Also redirect logging stream to the same pipe
     logger = ConsoleLogger(pe_stderr)
 
+    old_rng = nothing
+    if VERSION >= v"1.7.0-DEV.1226" # JuliaLang/julia#40546
+        # In Julia >= 1.7 each task has its own rng seed. This seed
+        # is obtained by calling rand(...) in the current task which
+        # modifies the random stream. We therefore copy the current seed
+        # and reset it after creating the read/write task below.
+        # See https://github.com/JuliaLang/julia/pull/41184 for more details.
+        old_rng = copy(Random.default_rng())
+    end
+
     # Bytes written to the `pipe` are captured in `output` and eventually converted to a
     # `String`. We need to use an asynchronous task to continously tranfer bytes from the
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
     buffer_redirect_task = @async write(output, pipe)
+
+    if old_rng !== nothing
+        copy!(Random.default_rng(), old_rng)
+    end
 
     # Run the function `f`, capturing all output that it might have generated.
     # Success signals whether the function `f` did or did not throw an exception.
