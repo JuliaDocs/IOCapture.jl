@@ -116,7 +116,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     end
     (
         value = result,
-        output = chomp(String(take!(output))),
+        output = String(take!(output)),
         error = !success,
         backtrace = backtrace,
     )
