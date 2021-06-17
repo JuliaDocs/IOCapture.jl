@@ -1,5 +1,9 @@
 # IOCapture.jl changelog
 
+## Version `0.2.2`
+
+* ![Bugfix][badge-bugfix] `IOCapture.capture` now correctly handles the random number generator seeds on Julia 1.7. ([#11][github-11])
+
 ## Version `0.2.1`
 
 * ![Bugfix][badge-bugfix] User code that writes a lot into `stdout` or `stderr` no longer stalls in `IOCapture.capture` due to a buffer filling up. ([fredrikekre/Literate.jl#138][literate-138], [#9][github-9])
@@ -34,6 +38,7 @@ Initial release exporting the `iocapture` function.
 [github-4]: https://github.com/JuliaDocs/IOCapture.jl/issues/4
 [github-6]: https://github.com/JuliaDocs/IOCapture.jl/pull/6
 [github-9]: https://github.com/JuliaDocs/IOCapture.jl/pull/9
+[github-11]: https://github.com/JuliaDocs/IOCapture.jl/pull/11
 
 [literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
 
