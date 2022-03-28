@@ -49,10 +49,10 @@ julia> c.output
 This approach does have some limitations -- see the README for more information.
 
 **Exceptions.** Normally, if `f` throws an exception, `capture` simply re-throws it with
-`rethrow`. However, by setting `rethrow` to `false`, it is also possible to capture
-errors, which then get returned via the `.value` field. Additionally, `.error` is set to
-`true`, to indicate that the function did not run normally, and the `catch_backtrace` of the
-exception is returned via `.backtrace`.
+`rethrow`. However, by setting `rethrow`, it is also possible to capture errors, which then
+get returned via the `.value` field. Additionally, `.error` is set to `true`, to indicate
+that the function did not run normally, and the `catch_backtrace` of the exception is
+returned via `.backtrace`.
 
 As mentioned above, it is also possible to set `rethrow` to `InterruptException`. This will
 make `capture` rethrow only `InterruptException`s. This is useful when you want to capture
