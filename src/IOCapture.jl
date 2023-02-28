@@ -137,4 +137,11 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     )
 end
 
+using SnoopPrecompile
+@precompile_all_calls begin
+    IOCapture.capture() do
+        println("...")
+    end
+end
+
 end
