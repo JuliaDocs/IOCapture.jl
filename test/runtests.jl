@@ -197,4 +197,19 @@ end
     Random.seed!(1)
     c = IOCapture.capture(() -> rand())
     @test r == c.value
+
+    # Make sure that IOCapture does not stall if we are printing a lot of
+    # "method definition overwritten" warnings.
+    # X-ref: https://github.com/JuliaDocs/Documenter.jl/issues/2121
+    # Note: This test only makes sense when running with `--warn-overwrite=yes`
+    # which is the default since
+    # https://github.com/JuliaLang/Pkg.jl/commit/e576700254b3bd1bbc0a2be2fad257cd70839162
+    @testset "Buffer not being emptied" begin
+        c = IOCapture.capture() do
+            for i in 1:1024
+                eval(:(function TEST_FUNC() 1 end))
+            end
+        end
+        @test true # just make sure we get here
+    end
 end

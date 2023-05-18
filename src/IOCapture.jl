@@ -115,6 +115,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # Success signals whether the function `f` did or did not throw an exception.
     result, success, backtrace = with_logger(logger) do
         try
+            yield() # avoid hang, see https://github.com/JuliaDocs/Documenter.jl/issues/2121
             f(), true, Vector{Ptr{Cvoid}}()
         catch err
             err isa rethrow && Base.rethrow(err)

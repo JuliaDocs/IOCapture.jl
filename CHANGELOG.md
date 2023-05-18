@@ -1,5 +1,9 @@
 # IOCapture.jl changelog
 
+## Version `0.2.3`
+
+* ![Bugfix][badge-bugfix] User code that creates a lot of "method definition overwritten" warnings no longer stalls in `IOCapture.capture` due to a buffer not being emptied. ([JuliaDocs/Documenter.jl#2121][documenter-2121], [#15][github-15])
+
 ## Version `0.2.2`
 
 * ![Bugfix][badge-bugfix] `IOCapture.capture` now correctly handles the random number generator seeds on Julia 1.7. ([#11][github-11])
@@ -39,8 +43,11 @@ Initial release exporting the `iocapture` function.
 [github-6]: https://github.com/JuliaDocs/IOCapture.jl/pull/6
 [github-9]: https://github.com/JuliaDocs/IOCapture.jl/pull/9
 [github-11]: https://github.com/JuliaDocs/IOCapture.jl/pull/11
+[github-15]: https://github.com/JuliaDocs/IOCapture.jl/pull/15
 
 [literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
+
+[documenter-2121]: https://github.com/JuliaDocs/Documenter.jl/issues/2121
 
 
 [badge-breaking]: https://img.shields.io/badge/BREAKING-red.svg
