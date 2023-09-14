@@ -1,7 +1,7 @@
 # IOCapture
 
 [![version](https://juliahub.com/docs/IOCapture/version.svg)](https://juliahub.com/ui/Packages/IOCapture/shLGd)
-[![Docs](https://img.shields.io/badge/docs-JuliaHub-blue.svg)](https://docs.juliahub.com/General/IOCapture/stable/)
+[![Documentation](https://img.shields.io/badge/docs-JuliaHub-blue.svg)](https://docs.juliahub.com/General/IOCapture/stable/)
 [![Run tests](https://github.com/JuliaDocs/IOCapture.jl/workflows/CI/badge.svg)](https://github.com/JuliaDocs/IOCapture.jl/actions)
 [![pkgeval](https://juliahub.com/docs/IOCapture/pkgeval.svg)](https://juliahub.com/ui/Packages/IOCapture/shLGd)
 [![codecov](https://codecov.io/gh/JuliaDocs/IOCapture.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaDocs/IOCapture.jl)
