@@ -105,7 +105,13 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
-    buffer_redirect_task = @async write(output, pipe)
+    temp = IOBuffer()
+    buffer_redirect_task = @async begin
+        write(temp, pipe)
+        temp_data = take!(temp)
+        write(output, temp_data)
+        write(default_stdout, temp_data)
+    end
 
     if old_rng !== nothing
         copy!(Random.default_rng(), old_rng)
