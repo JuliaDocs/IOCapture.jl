@@ -113,11 +113,13 @@ function capture(f; rethrow::Type=Any, color::Bool=false, pass_through::Bool=fal
     output = IOBuffer()
     if pass_through
         bufsize = 128
+        buffer = Vector{UInt8}(undef, bufsize)
         buffer_redirect_task = @async begin
             while true
-                buffer = read(pipe, bufsize)
-                write(output, buffer)
-                write(default_stdout, buffer)
+                nbytes = readbytes!(pipe, buffer, bufsize)
+                data = view(buffer, 1:nbytes)
+                write(output, data)
+                write(default_stdout, data)
                 isopen(pipe) || break
             end
         end
