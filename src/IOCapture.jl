@@ -105,12 +105,14 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
-    temp = IOBuffer()
+    bufsize = 128
     buffer_redirect_task = @async begin
-        write(temp, pipe)
-        temp_data = take!(temp)
-        write(output, temp_data)
-        write(default_stdout, temp_data)
+        while true
+            buffer = read(pipe, bufsize)
+            write(output, buffer)
+            write(default_stdout, buffer)
+            isempty(buffer) && break
+        end
     end
 
     if old_rng !== nothing
