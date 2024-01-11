@@ -3,10 +3,12 @@ using Logging
 import Random
 
 """
-    IOCapture.capture(f; rethrow=Any, color=false)
+    IOCapture.capture(f; rethrow=Any, color=false, pass_through=false)
 
-Runs the function `f` and captures the `stdout` and `stderr` outputs without printing them
-in the terminal. Returns an object with the following fields:
+Runs the function `f` and captures the `stdout` and `stderr` outputs, without printing
+them in the terminal, unless `pass_through=true`.
+
+Returns an object with the following fields:
 
 * `.value :: Any`: return value of the function, or the error exception object on error
 * `.output :: String`: captured `stdout` and `stderr`
@@ -48,6 +50,10 @@ julia> c.output
 
 This approach does have some limitations -- see the README for more information.
 
+If `pass_through=true`, the redirected streams will also be passed through to the
+original standard output. As a result, the output from `f` would both be captured and
+shown on screen.
+
 **Exceptions.** Normally, if `f` throws an exception, `capture` simply re-throws it with
 `rethrow`. However, by setting `rethrow`, it is also possible to capture errors, which then
 get returned via the `.value` field. Additionally, `.error` is set to `true`, to indicate
@@ -69,7 +75,7 @@ using IOcapture: capture as iocapture
 
 This avoids the function name being too generic.
 """
-function capture(f; rethrow::Type=Any, color::Bool=false)
+function capture(f; rethrow::Type=Any, color::Bool=false, pass_through::Bool=false)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -105,14 +111,18 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
-    bufsize = 128
-    buffer_redirect_task = @async begin
-        while true
-            buffer = read(pipe, bufsize)
-            write(output, buffer)
-            write(default_stdout, buffer)
-            isempty(buffer) && break
+    if pass_through
+        bufsize = 128
+        buffer_redirect_task = @async begin
+            while true
+                buffer = read(pipe, bufsize)
+                write(output, buffer)
+                write(default_stdout, buffer)
+                isopen(pipe) || break
+            end
         end
+    else
+        buffer_redirect_task = @async write(output, pipe)
     end
 
     if old_rng !== nothing
