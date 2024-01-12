@@ -69,7 +69,7 @@ using IOcapture: capture as iocapture
 
 This avoids the function name being too generic.
 """
-function capture(f; rethrow::Type=Any, color::Bool=false)
+function capture(f; rethrow::Type=Any, color::Bool=false, _output=IOBuffer())
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -104,8 +104,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     # `String`. We need to use an asynchronous task to continously tranfer bytes from the
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
-    output = IOBuffer()
-    buffer_redirect_task = @async write(output, pipe)
+    buffer_redirect_task = @async write(_output, pipe)
 
     if old_rng !== nothing
         copy!(Random.default_rng(), old_rng)
@@ -132,7 +131,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false)
     end
     (
         value = result,
-        output = String(take!(output)),
+        output = String(take!(_output)),
         error = !success,
         backtrace = backtrace,
     )
