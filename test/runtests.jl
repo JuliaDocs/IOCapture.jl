@@ -213,11 +213,11 @@ end
         @test true # just make sure we get here
     end
 
-    @testset "pass_through" begin
+    @testset "passthrough" begin
         mktemp() do logfile, io
             redirect_stdout(io) do
                 print("<pre>")
-                c = IOCapture.capture(pass_through=true) do
+                c = IOCapture.capture(passthrough=true) do
                     for i in 1:128
                         print("HelloWorld")
                     end

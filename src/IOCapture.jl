@@ -3,10 +3,10 @@ using Logging
 import Random
 
 """
-    IOCapture.capture(f; rethrow=Any, color=false, pass_through=false)
+    IOCapture.capture(f; rethrow=Any, color=false, passthrough=false)
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs, without printing
-them in the terminal, unless `pass_through=true`.
+them in the terminal, unless `passthrough=true`.
 
 Returns an object with the following fields:
 
@@ -50,7 +50,7 @@ julia> c.output
 
 This approach does have some limitations -- see the README for more information.
 
-If `pass_through=true`, the redirected streams will also be passed through to the
+If `passthrough=true`, the redirected streams will also be passed through to the
 original standard output. As a result, the output from `f` would both be captured and
 shown on screen.
 
@@ -75,7 +75,7 @@ using IOcapture: capture as iocapture
 
 This avoids the function name being too generic.
 """
-function capture(f; rethrow::Type=Any, color::Bool=false, pass_through::Bool=false)
+function capture(f; rethrow::Type=Any, color::Bool=false, passthrough::Bool=false)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -111,7 +111,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false, pass_through::Bool=fal
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
     output = IOBuffer()
-    if pass_through
+    if passthrough
         bufsize = 128
         buffer = Vector{UInt8}(undef, bufsize)
         buffer_redirect_task = @async begin
