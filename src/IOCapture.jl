@@ -75,9 +75,12 @@ all the exceptions, but allow the user to interrupt the running code with `Ctrl+
 **Capture Buffer**
 
 Giving a non-standard `capture_buffer` allows to dynamically process the captured output
-in arbitrary ways. For example, a custom buffer may discard part of some very large
-output. The object passed as `capture_buffer` must implement two methods:
+in arbitrary ways. For example, a custom buffer could truncate the capture of some very
+large output. The object passed as `capture_buffer` must implement two methods:
 `Base.write(capture_buffer, bytes)` and `bytes = Base.take!(capture_buffer)`.
+When combined with `passthrough`, a custom `capture_buffer` will not affect the
+pass-through. Thus, for the example of a truncated capture, the pass-through
+would still show the full output.
 
 **Recommended pattern.** The recommended way to refer to `capture` is by fully qualifying
 the function name with `IOCapture.capture`. This is also why the package does not export
