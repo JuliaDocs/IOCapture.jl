@@ -230,27 +230,30 @@ end
         end
         # Interaction of passthrough= with color=
         # Also tests that stdout and stderr get merged in both .output and passthrough
-        mktemp() do logfile, io
-            redirect_stdout(IOContext(io, :color => true)) do
-                c = IOCapture.capture(passthrough=true) do
-                    printstyled(stdout, "foo"; color=:blue)
-                    printstyled(stderr, "bar"; color=:red)
+        if VERSION >= v"1.6.0"
+            # older versions don't support `redirect_stdout(IOContext…`
+            mktemp() do logfile, io
+                redirect_stdout(IOContext(io, :color => true)) do
+                    c = IOCapture.capture(passthrough=true) do
+                        printstyled(stdout, "foo"; color=:blue)
+                        printstyled(stderr, "bar"; color=:red)
+                    end
                 end
+                close(io)
+                @test c.output == "foobar"
+                @test c.output == read(logfile, String)
             end
-            close(io)
-            @test c.output == "foobar"
-            @test c.output == read(logfile, String)
-        end
-        mktemp() do logfile, io
-            redirect_stdout(IOContext(io, :color => true)) do
-                c = IOCapture.capture(passthrough=true, color=true) do
-                    printstyled(stdout, "foo"; color=:blue)
-                    printstyled(stderr, "bar"; color=:red)
+            mktemp() do logfile, io
+                redirect_stdout(IOContext(io, :color => true)) do
+                    c = IOCapture.capture(passthrough=true, color=true) do
+                        printstyled(stdout, "foo"; color=:blue)
+                        printstyled(stderr, "bar"; color=:red)
+                    end
                 end
+                close(io)
+                @test c.output == "\e[34mfoo\e[39m\e[31mbar\e[39m"
+                @test c.output == read(logfile, String)
             end
-            close(io)
-            @test c.output == "\e[34mfoo\e[39m\e[31mbar\e[39m"
-            @test c.output == read(logfile, String)
         end
     end
 
