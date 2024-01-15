@@ -214,8 +214,7 @@ end
     end
 
     @testset "pass_through" begin
-        logfile = joinpath(@__DIR__, "pass_through.out")
-        open(logfile, "w") do io
+        mktemp() do logfile, io
             redirect_stdout(io) do
                 print("<pre>")
                 c = IOCapture.capture(pass_through=true) do
@@ -225,10 +224,10 @@ end
                 end
                 print("<post>")
             end
+            close(io)
+            @test c.output == "HelloWorld"^128
+            @test read(logfile, String) == "<pre>" * "HelloWorld"^128 * "<post>"
         end
-        @test c.output == "HelloWorld"^128
-        @test read(logfile, String) == "<pre>" * "HelloWorld"^128 * "<post>"
-        rm(logfile)
     end
 
 end
