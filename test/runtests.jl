@@ -212,4 +212,49 @@ end
         end
         @test true # just make sure we get here
     end
+
+    @testset "passthrough" begin
+        mktemp() do logfile, io
+            redirect_stdout(io) do
+                print("<pre>")
+                c = IOCapture.capture(passthrough=true) do
+                    for i in 1:128
+                        print("HelloWorld")
+                    end
+                end
+                print("<post>")
+            end
+            close(io)
+            @test c.output == "HelloWorld"^128
+            @test read(logfile, String) == "<pre>" * "HelloWorld"^128 * "<post>"
+        end
+        # Interaction of passthrough= with color=
+        # Also tests that stdout and stderr get merged in both .output and passthrough
+        if VERSION >= v"1.6.0"
+            # older versions don't support `redirect_stdout(IOContext…`
+            mktemp() do logfile, io
+                redirect_stdout(IOContext(io, :color => true)) do
+                    c = IOCapture.capture(passthrough=true) do
+                        printstyled(stdout, "foo"; color=:blue)
+                        printstyled(stderr, "bar"; color=:red)
+                    end
+                end
+                close(io)
+                @test c.output == "foobar"
+                @test c.output == read(logfile, String)
+            end
+            mktemp() do logfile, io
+                redirect_stdout(IOContext(io, :color => true)) do
+                    c = IOCapture.capture(passthrough=true, color=true) do
+                        printstyled(stdout, "foo"; color=:blue)
+                        printstyled(stderr, "bar"; color=:red)
+                    end
+                end
+                close(io)
+                @test c.output == "\e[34mfoo\e[39m\e[31mbar\e[39m"
+                @test c.output == read(logfile, String)
+            end
+        end
+    end
+
 end
