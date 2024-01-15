@@ -228,6 +228,26 @@ end
             @test c.output == "HelloWorld"^128
             @test read(logfile, String) == "<pre>" * "HelloWorld"^128 * "<post>"
         end
+        mktemp() do logfile, io
+            redirect_stdout(IOContext(io, :color => true)) do
+                c = IOCapture.capture(passthrough=true) do
+                    printstyled("foo"; color=:red)
+                end
+            end
+            close(io)
+            @test c.output == "foo"
+            @test c.output == read(logfile, String)
+        end
+        mktemp() do logfile, io
+            redirect_stdout(IOContext(io, :color => true)) do
+                c = IOCapture.capture(passthrough=true, color=true) do
+                    printstyled("foo"; color=:red)
+                end
+            end
+            close(io)
+            @test contains(c.output, "\e[")
+            @test c.output == read(logfile, String)
+        end
     end
 
 end
