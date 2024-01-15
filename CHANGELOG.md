@@ -1,5 +1,9 @@
 # IOCapture.jl changelog
 
+## Unreleased
+
+* ![Enhancement][badge-enhancement] `iocapture` now accepts a `passthrough` keyword argument that passes through output to `stdout` as well as capturing it. ([#19][github-19], [#20][github-20])
+
 ## Version `0.2.3`
 
 * ![Bugfix][badge-bugfix] User code that creates a lot of "method definition overwritten" warnings no longer stalls in `IOCapture.capture` due to a buffer not being emptied. ([JuliaDocs/Documenter.jl#2121][documenter-2121], [#15][github-15])
@@ -44,6 +48,8 @@ Initial release exporting the `iocapture` function.
 [github-9]: https://github.com/JuliaDocs/IOCapture.jl/pull/9
 [github-11]: https://github.com/JuliaDocs/IOCapture.jl/pull/11
 [github-15]: https://github.com/JuliaDocs/IOCapture.jl/pull/15
+[github-19]: https://github.com/JuliaDocs/IOCapture.jl/issues/19
+[github-20]: https://github.com/JuliaDocs/IOCapture.jl/pull/20
 
 [literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
 
