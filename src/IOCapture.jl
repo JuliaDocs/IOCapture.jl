@@ -52,7 +52,8 @@ This approach does have some limitations -- see the README for more information.
 
 If `passthrough=true`, the redirected streams will also be passed through to the
 original standard output. As a result, the output from `f` would both be captured and
-shown on screen.
+shown on screen. Note that `stdout` and `stderr` are merged in the pass-through, and color
+is stripped unless the `color` option is set to `true`.
 
 **Exceptions.** Normally, if `f` throws an exception, `capture` simply re-throws it with
 `rethrow`. However, by setting `rethrow`, it is also possible to capture errors, which then
