@@ -228,24 +228,28 @@ end
             @test c.output == "HelloWorld"^128
             @test read(logfile, String) == "<pre>" * "HelloWorld"^128 * "<post>"
         end
+        # Interaction of passthrough= with color=
+        # Also tests that stdout and stderr get merged in both .output and passthrough
         mktemp() do logfile, io
             redirect_stdout(IOContext(io, :color => true)) do
                 c = IOCapture.capture(passthrough=true) do
-                    printstyled("foo"; color=:red)
+                    printstyled(stdout, "foo"; color=:blue)
+                    printstyled(stderr, "bar"; color=:red)
                 end
             end
             close(io)
-            @test c.output == "foo"
+            @test c.output == "foobar"
             @test c.output == read(logfile, String)
         end
         mktemp() do logfile, io
             redirect_stdout(IOContext(io, :color => true)) do
                 c = IOCapture.capture(passthrough=true, color=true) do
-                    printstyled("foo"; color=:red)
+                    printstyled(stdout, "foo"; color=:blue)
+                    printstyled(stderr, "bar"; color=:red)
                 end
             end
             close(io)
-            @test contains(c.output, "\e[")
+            @test c.output == "\e[34mfoo\e[39m\e[31mbar\e[39m"
             @test c.output == read(logfile, String)
         end
     end
