@@ -1,29 +1,42 @@
-# IOCapture.jl changelog
+# Release notes
 
-## Unreleased
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-* ![Enhancement][badge-enhancement] `iocapture` now accepts a `passthrough` keyword argument that passes through output to `stdout` as well as capturing it. ([#19][github-19], [#20][github-20])
-* ![Enhancement][badge-enhancement] The new `capture_buffer` keyword argument allows to replace the internal `IOBuffer()` used for capturing, enabling arbitrary dynamic processing of the captured output. ([#21][github-21], [#23][github-23])
+## Version [v0.2.4] - 2023-01-17
 
-## Version `0.2.3`
+### Added
 
-* ![Bugfix][badge-bugfix] User code that creates a lot of "method definition overwritten" warnings no longer stalls in `IOCapture.capture` due to a buffer not being emptied. ([JuliaDocs/Documenter.jl#2121][documenter-2121], [#15][github-15])
+* `iocapture` now accepts a `passthrough` keyword argument that passes through output to `stdout` as well as capturing it. ([#19], [#20])
+* The new `capture_buffer` keyword argument allows to replace the internal `IOBuffer()` used for capturing, enabling arbitrary dynamic processing of the captured output. ([#21], [#23])
 
-## Version `0.2.2`
+## Version [v0.2.3] - 2023-05-18
 
-* ![Bugfix][badge-bugfix] `IOCapture.capture` now correctly handles the random number generator seeds on Julia 1.7. ([#11][github-11])
+### Fixed
 
-## Version `0.2.1`
+* User code that creates a lot of "method definition overwritten" warnings no longer stalls in `IOCapture.capture` due to a buffer not being emptied. ([JuliaDocs/Documenter.jl#2121][documenter-2121], [#15][github-15])
 
-* ![Bugfix][badge-bugfix] User code that writes a lot into `stdout` or `stderr` no longer stalls in `IOCapture.capture` due to a buffer filling up. ([fredrikekre/Literate.jl#138][literate-138], [#9][github-9])
+## Version [v0.2.2] - 2021-06-13
 
-## Version `0.2.0`
+### Fixed
 
-* ![BREAKING][badge-breaking] ![Enhancement][badge-enhancement] The `iocapture` function has been renamed to `capture` and is no longer exported. The recommended way to refer to the function by fully qualifying the name (i.e. `IOCapture.capture`). ([#3][github-3], [#6][github-6])
+* `IOCapture.capture` now correctly handles the random number generator seeds on Julia 1.7. ([#11])
+
+## Version [v0.2.1] - 2021-03-14
+
+### Fixed
+
+* User code that writes a lot into `stdout` or `stderr` no longer stalls in `IOCapture.capture` due to a buffer filling up. ([fredrikekre/Literate.jl#138], [#9])
+
+## Version [v0.2.0] - 2020-11-08
+
+### Breaking
+
+* The `iocapture` function has been renamed to `capture` and is no longer exported. The recommended way to refer to the function by fully qualifying the name (i.e. `IOCapture.capture`). ([#3], [#6])
 
   **For upgrading:** Instances of `iocapture` (or `IOCapture.iocapture`) should be replaced by `IOCapture.capture`.
 
-* ![BREAKING][badge-breaking] ![Enhancement][badge-enhancement] The `throwerrors` keyword argument to `capture` (previously `iocapture`) has been renamed to `rethrow` and accepts now exception types as arguments (instead of `:interrupt`/`true`/`false`). ([#2][github-2], [#4][github-4], [#6][github-6])
+* The `throwerrors` keyword argument to `capture` (previously `iocapture`) has been renamed to `rethrow` and accepts now exception types as arguments (instead of `:interrupt`/`true`/`false`). ([#2], [#4], [#6])
 
   **For upgrading:**
 
@@ -32,51 +45,35 @@
   * `throwerrors = true` (or `rethrow = true`) should be replaced by `rethrow = Any`.
   * `throwerrors = false` (or `rethrow = false`) should be replaced by `rethrow = Union{}`.
 
-## Version `0.1.1`
+## Version [v0.1.1] - 2020-10-29
 
-* ![Enhancement][badge-enhancement] `iocapture` now accepts the `color` keyword argument to enable the capturing of ANSI color sequences (on Julia 1.6 and above). ([#1][github-1])
+### Added
 
-## Version `0.1.0`
+* `iocapture` now accepts the `color` keyword argument to enable the capturing of ANSI color sequences (on Julia 1.6 and above). ([#1])
+
+## Version [v0.1.0] - 2020-09-20
 
 Initial release exporting the `iocapture` function.
 
 
-[github-1]: https://github.com/JuliaDocs/IOCapture.jl/pull/1
-[github-2]: https://github.com/JuliaDocs/IOCapture.jl/pull/2
-[github-3]: https://github.com/JuliaDocs/IOCapture.jl/issues/3
-[github-4]: https://github.com/JuliaDocs/IOCapture.jl/issues/4
-[github-6]: https://github.com/JuliaDocs/IOCapture.jl/pull/6
-[github-9]: https://github.com/JuliaDocs/IOCapture.jl/pull/9
-[github-11]: https://github.com/JuliaDocs/IOCapture.jl/pull/11
-[github-15]: https://github.com/JuliaDocs/IOCapture.jl/pull/15
-[github-19]: https://github.com/JuliaDocs/IOCapture.jl/issues/19
-[github-20]: https://github.com/JuliaDocs/IOCapture.jl/pull/20
-[github-21]: https://github.com/JuliaDocs/IOCapture.jl/issues/21
-[github-23]: https://github.com/JuliaDocs/IOCapture.jl/pull/23
+<!-- Links generated by Changelog.jl -->
 
-[literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
-
-[documenter-2121]: https://github.com/JuliaDocs/Documenter.jl/issues/2121
-
-
-[badge-breaking]: https://img.shields.io/badge/BREAKING-red.svg
-[badge-deprecation]: https://img.shields.io/badge/deprecation-orange.svg
-[badge-feature]: https://img.shields.io/badge/feature-green.svg
-[badge-enhancement]: https://img.shields.io/badge/enhancement-blue.svg
-[badge-bugfix]: https://img.shields.io/badge/bugfix-purple.svg
-[badge-security]: https://img.shields.io/badge/security-black.svg
-[badge-experimental]: https://img.shields.io/badge/experimental-lightgrey.svg
-[badge-maintenance]: https://img.shields.io/badge/maintenance-gray.svg
-
-<!--
-# Badges
-
-![BREAKING][badge-breaking]
-![Deprecation][badge-deprecation]
-![Feature][badge-feature]
-![Enhancement][badge-enhancement]
-![Bugfix][badge-bugfix]
-![Security][badge-security]
-![Experimental][badge-experimental]
-![Maintenance][badge-maintenance]
--->
+[v0.1.0]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.1.0
+[v0.1.1]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.1.1
+[v0.2.0]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.2.0
+[v0.2.1]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.2.1
+[v0.2.2]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.2.2
+[v0.2.3]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.2.3
+[v0.2.4]: https://github.com/JuliaDocs/IOCapture.jl/releases/tag/v0.2.4
+[#1]: https://github.com/JuliaDocs/IOCapture.jl/issues/1
+[#2]: https://github.com/JuliaDocs/IOCapture.jl/issues/2
+[#3]: https://github.com/JuliaDocs/IOCapture.jl/issues/3
+[#4]: https://github.com/JuliaDocs/IOCapture.jl/issues/4
+[#6]: https://github.com/JuliaDocs/IOCapture.jl/issues/6
+[#9]: https://github.com/JuliaDocs/IOCapture.jl/issues/9
+[#11]: https://github.com/JuliaDocs/IOCapture.jl/issues/11
+[#19]: https://github.com/JuliaDocs/IOCapture.jl/issues/19
+[#20]: https://github.com/JuliaDocs/IOCapture.jl/issues/20
+[#21]: https://github.com/JuliaDocs/IOCapture.jl/issues/21
+[#23]: https://github.com/JuliaDocs/IOCapture.jl/issues/23
+[fredrikekre/Literate.jl#138]: https://github.com/fredrikekre/Literate.jl/issues/138
