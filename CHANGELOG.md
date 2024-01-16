@@ -3,6 +3,7 @@
 ## Unreleased
 
 * ![Enhancement][badge-enhancement] `iocapture` now accepts a `passthrough` keyword argument that passes through output to `stdout` as well as capturing it. ([#19][github-19], [#20][github-20])
+* ![Enhancement][badge-enhancement] The new `capture_buffer` keyword argument allows to replace the internal `IOBuffer()` used for capturing, enabling arbitrary dynamic processing of the captured output. ([#21][github-21], [#23][github-23])
 
 ## Version `0.2.3`
 
@@ -50,6 +51,8 @@ Initial release exporting the `iocapture` function.
 [github-15]: https://github.com/JuliaDocs/IOCapture.jl/pull/15
 [github-19]: https://github.com/JuliaDocs/IOCapture.jl/issues/19
 [github-20]: https://github.com/JuliaDocs/IOCapture.jl/pull/20
+[github-21]: https://github.com/JuliaDocs/IOCapture.jl/issues/21
+[github-23]: https://github.com/JuliaDocs/IOCapture.jl/pull/23
 
 [literate-138]: https://github.com/fredrikekre/Literate.jl/issues/138
 

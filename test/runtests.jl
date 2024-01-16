@@ -15,6 +15,29 @@ struct Foo
 end
 (foo::Foo)() = println(foo.x)
 
+
+# Non-standard capture_buffer for testing
+struct _TruncatedBuffer
+    max_bytes::Int64
+    buffer::IOBuffer
+    _TruncatedBuffer(max_bytes) = new(max_bytes, IOBuffer())
+end
+
+function Base.write(b::_TruncatedBuffer, bytes)
+    for byte in bytes
+        (b.buffer.size < b.max_bytes) && write(b.buffer, byte)
+    end
+end
+
+function Base.take!(b::_TruncatedBuffer)
+    bytes = take!(b.buffer)
+    if length(bytes) == b.max_bytes
+        append!(bytes, Vector{UInt8}("…"))
+    end
+    return bytes
+end
+
+
 @testset "IOCapture.jl" begin
     # Capturing standard output
     c = IOCapture.capture() do
@@ -256,5 +279,20 @@ end
             end
         end
     end
+
+    @testset "capture_buffer" begin
+        mktemp() do logfile, io
+            text = "Hello World (this text has more than 8 bytes)"
+            redirect_stdout(io) do
+                c = IOCapture.capture(passthrough=true, capture_buffer=_TruncatedBuffer(8)) do
+                    print(text)
+                end
+            end
+            close(io)
+            @test c.output == "Hello Wo…"
+            @test read(logfile, String) == text
+        end
+    end
+
 
 end

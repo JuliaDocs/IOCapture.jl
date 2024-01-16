@@ -3,7 +3,9 @@ using Logging
 import Random
 
 """
-    IOCapture.capture(f; rethrow=Any, color=false, passthrough=false)
+    IOCapture.capture(
+        f; rethrow=Any, color=false, passthrough=false, capture_buffer=IOBuffer()
+    )
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs, without printing
 them in the terminal, unless `passthrough=true`.
@@ -32,12 +34,17 @@ The behaviour can be customized with the following keyword arguments:
   `stderr`, which specifies whether ANSI color/escape codes are expected. This argument is
   only effective on Julia v1.6 and later.
 
+* `passthrough`: if set to `true`, show the output as well as capturing it.
+
+* `capture_buffer`: The internal buffer used to capture the combined `stdout`
+  and `stderr`.
+
 # Extended help
 
 `capture` works by temporarily redirecting the standard output and error streams
 (`stdout` and `stderr`) using `redirect_stdout` and `redirect_stderr` to a temporary
-buffer, evaluate the function `f` and then restores the streams. Both the captured text
-output and the returned object get captured and returned:
+`capture_buffer`, evaluate the function `f` and then restores the streams. Both the
+captured text output and the returned object get captured and returned:
 
 ```jldoctest
 julia> c = IOCapture.capture() do
@@ -65,6 +72,16 @@ As mentioned above, it is also possible to set `rethrow` to `InterruptException`
 make `capture` rethrow only `InterruptException`s. This is useful when you want to capture
 all the exceptions, but allow the user to interrupt the running code with `Ctrl+C`.
 
+**Capture Buffer**
+
+Giving a non-standard `capture_buffer` allows to dynamically process the captured output
+in arbitrary ways. For example, a custom buffer could truncate the capture of some very
+large output. The object passed as `capture_buffer` must implement two methods:
+`Base.write(capture_buffer, bytes)` and `bytes = Base.take!(capture_buffer)`.
+When combined with `passthrough`, a custom `capture_buffer` will not affect the
+pass-through. Thus, for the example of a truncated capture, the pass-through
+would still show the full output.
+
 **Recommended pattern.** The recommended way to refer to `capture` is by fully qualifying
 the function name with `IOCapture.capture`. This is also why the package does not export
 the function. However, if a shorter name is desired, we recommend renaming the function
@@ -76,7 +93,13 @@ using IOcapture: capture as iocapture
 
 This avoids the function name being too generic.
 """
-function capture(f; rethrow::Type=Any, color::Bool=false, passthrough::Bool=false)
+function capture(
+    f;
+    rethrow::Type=Any,
+    color::Bool=false,
+    passthrough::Bool=false,
+    capture_buffer=IOBuffer()
+)
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -111,7 +134,6 @@ function capture(f; rethrow::Type=Any, color::Bool=false, passthrough::Bool=fals
     # `String`. We need to use an asynchronous task to continously tranfer bytes from the
     # pipe to `output` in order to avoid the buffer filling up and stalling write() calls in
     # user code.
-    output = IOBuffer()
     if passthrough
         bufsize = 128
         buffer = Vector{UInt8}(undef, bufsize)
@@ -119,12 +141,12 @@ function capture(f; rethrow::Type=Any, color::Bool=false, passthrough::Bool=fals
             while !eof(pipe)
                 nbytes = readbytes!(pipe, buffer, bufsize)
                 data = view(buffer, 1:nbytes)
-                write(output, data)
+                write(capture_buffer, data)
                 write(default_stdout, data)
             end
         end
     else
-        buffer_redirect_task = @async write(output, pipe)
+        buffer_redirect_task = @async write(capture_buffer, pipe)
     end
 
     if old_rng !== nothing
@@ -152,7 +174,7 @@ function capture(f; rethrow::Type=Any, color::Bool=false, passthrough::Bool=fals
     end
     (
         value = result,
-        output = String(take!(output)),
+        output = String(take!(capture_buffer)),
         error = !success,
         backtrace = backtrace,
     )
