@@ -4,7 +4,7 @@ import Random
 
 """
     IOCapture.capture(
-        f; rethrow=Any, color=false, passthrough=false, capture_buffer=IOBuffer()
+        f; rethrow=Any, color=false, passthrough=false, capture_buffer=IOBuffer(), io_context=[],
     )
 
 Runs the function `f` and captures the `stdout` and `stderr` outputs, without printing
@@ -38,6 +38,10 @@ The behaviour can be customized with the following keyword arguments:
 
 * `capture_buffer`: The internal buffer used to capture the combined `stdout`
   and `stderr`.
+
+* `io_context`: An optional vector of `IOContext` key/value pairs that are passed to
+  the `IOContext` that wraps the redirected `stdout` and `stderr` streams. This only
+  has an effect on Julia v1.6 and later.
 
 # Extended help
 
@@ -98,8 +102,13 @@ function capture(
     rethrow::Type=Any,
     color::Bool=false,
     passthrough::Bool=false,
-    capture_buffer=IOBuffer()
+    capture_buffer=IOBuffer(),
+    io_context::AbstractVector=[],
 )
+    if any(x -> !isa(x, Pair{Symbol,<:Any}), io_context)
+        throw(ArgumentError("`io_context` must be a `Vector` of `Pair{Symbol,<:Any}`."))
+    end
+
     # Original implementation from Documenter.jl (MIT license)
     # Save the default output streams.
     default_stdout = stdout
@@ -109,8 +118,8 @@ function capture(
     pipe = Pipe()
     Base.link_pipe!(pipe; reader_supports_async = true, writer_supports_async = true)
     @static if VERSION >= v"1.6.0-DEV.481" # https://github.com/JuliaLang/julia/pull/36688
-        pe_stdout = IOContext(pipe.in, :color => get(stdout, :color, false) & color)
-        pe_stderr = IOContext(pipe.in, :color => get(stderr, :color, false) & color)
+        pe_stdout = IOContext(pipe.in, :color => get(stdout, :color, false) & color, io_context...)
+        pe_stderr = IOContext(pipe.in, :color => get(stderr, :color, false) & color, io_context...)
     else
         pe_stdout = pipe.in
         pe_stderr = pipe.in

@@ -294,5 +294,25 @@ end
         end
     end
 
+    if VERSION >= v"1.6.0-DEV.481"
+        @testset "io_context" begin
+            # Avoids needing to define this at top-level as a `module M` syntax.
+            M = Module(:M)
+            Core.eval(M, :(struct T end))
 
+            no_io_context = IOCapture.capture() do
+                println(M.T())
+            end
+            @test rstrip(no_io_context.output) == "Main.M.T()"
+
+            with_io_context = IOCapture.capture(io_context=[:module => M]) do
+                println(M.T())
+            end
+            @test rstrip(with_io_context.output) == "T()"
+
+            @test_throws ArgumentError IOCapture.capture(io_context=["module" => M]) do
+                println(M.T())
+            end
+        end
+    end
 end
